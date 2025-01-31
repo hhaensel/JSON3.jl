@@ -284,7 +284,7 @@ function write(::NumberType, buf, pos, len, x::AbstractFloat; allow_inf::Bool=fa
     return buf, pos, len
 end
 
-@inline function write(::NumberType, buf, pos, len, x::T; inf_mapping::Union{Function, Nothing} = nothing, allow_inf::Bool = inf_mapping !== nothing, kw...) where {T <: Base.IEEEFloat}
+@inline function write(::NumberType, buf, pos, len, x::T; inf_mapping = nothing, allow_inf::Bool = inf_mapping !== nothing, kw...) where {T <: Base.IEEEFloat}
     if isfinite(x) || (allow_inf && inf_mapping === nothing && isnan(x))
         @check Ryu.neededdigits(T)
         pos = Ryu.writeshortest(buf, pos, x)
@@ -296,7 +296,8 @@ end
             sign(x) == -1 && @writechar '-'
             @writechar 'I' 'n' 'f' 'i' 'n' 'i' 't' 'y'
         else
-            bytes = codeunits(inf_mapping(x))
+            bytes = codeunits(x == Inf ? inf_mapping[1] : x == -Inf ? inf_mapping[2] : inf_mapping[3])
+
             @check length(bytes)
             for b in bytes
                 @inbounds buf[pos] = b

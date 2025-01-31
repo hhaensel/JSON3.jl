@@ -93,7 +93,7 @@ end
 
 const FLOAT_INT_BOUND = 2.0^53
 
-function read!(buf, pos, len, b, tape, tapeidx, ::Type{Any}, checkint=true; inf_mapping::Union{Function,Nothing}=nothing, allow_inf::Bool=(inf_mapping !== nothing))
+function read!(buf, pos, len, b, tape, tapeidx, ::Type{Any}, checkint=true; inf_mapping::Union{NTuple{3,String},Nothing}=nothing, allow_inf::Bool=(inf_mapping !== nothing))
     if b == UInt8('{')
         return read!(buf, pos, len, b, tape, tapeidx, Object, checkint; allow_inf=allow_inf, inf_mapping=inf_mapping)
     elseif b == UInt8('[')
@@ -148,7 +148,7 @@ function read!(buf, pos, len, b, tape, tapeidx, ::Type{Any}, checkint=true; inf_
     invalid(InvalidChar, buf, pos, Any)
 end
 
-function read!(buf, pos, len, b, tape, tapeidx, ::Type{String}; inf_mapping::Union{Function,Nothing}=nothing)
+function read!(buf, pos, len, b, tape, tapeidx, ::Type{String}; inf_mapping::Union{NTuple{3,String},Nothing}=nothing)
     pos += 1
     @eof
     strpos = pos
@@ -173,11 +173,11 @@ function read!(buf, pos, len, b, tape, tapeidx, ::Type{String}; inf_mapping::Uni
     @check
     if inf_mapping !== nothing
         val = view(buf, strpos-1:pos)
-        float = if val == codeunits(inf_mapping(Inf))
+        float = if val == codeunits(inf_mapping[1])
             Inf
-        elseif val == codeunits(inf_mapping(-Inf))
+        elseif val == codeunits(inf_mapping[2])
             -Inf
-        elseif val == codeunits(inf_mapping(NaN))
+        elseif val == codeunits(inf_mapping[3])
             NaN
         else
             0.0
